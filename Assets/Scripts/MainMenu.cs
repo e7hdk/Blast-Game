@@ -5,10 +5,10 @@ using UnityEngine.SceneManagement;
 public class MainMenu: MonoBehaviour
 {
     public TextMeshProUGUI levelText;
-
+    private int level;
     public void Start()
     {
-        var level = PlayerPrefs.GetInt("Level", 1);
+        level = PlayerPrefs.GetInt("Level", 1);
         if (level > 10)
         {
             levelText.text = "Finished";
@@ -20,7 +20,7 @@ public class MainMenu: MonoBehaviour
     {
         if (PlayerPrefs.GetInt("Level") <= 10)
         {
-            SceneManager.LoadSceneAsync("SampleScene");
+            SceneManager.LoadSceneAsync($"SampleScene{level}");
         }    
         
     }

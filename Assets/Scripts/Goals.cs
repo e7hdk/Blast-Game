@@ -23,23 +23,7 @@ public class Goals : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        level = PlayerPrefs.GetInt("Level");
-        filePath = $"Assets/Levels/level_0{level}.json";
-        string jsonContent = File.ReadAllText(filePath);
-        Grid.LevelData levelData = JsonUtility.FromJson<Grid.LevelData>(jsonContent);
         
-        x = levelData.grid_width;
-        y = levelData.grid_height;
-        for (var i = 0; i < x * y; i++)
-        {
-            if (levelData.grid[i] == "s") stoneNum++;
-            if (levelData.grid[i] == "v") vaseNum++;
-            if (levelData.grid[i] == "bo") boxNum++;
-        }
-
-        vaseText.text = vaseNum.ToString();
-        stoneText.text = stoneNum.ToString();
-        boxText.text = boxNum.ToString();
 
     }
 

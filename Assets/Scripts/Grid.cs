@@ -33,6 +33,7 @@ public class Grid : MonoBehaviour
     public TextMeshPro vaseText;
     public TextMeshPro boxText;
     public TextMeshPro stoneText;
+    public TextMeshPro movetext;
     public int Width;
     public int Height;
     public int moveCount;
@@ -60,9 +61,14 @@ public class Grid : MonoBehaviour
 
     void Start()
     {
-        var level = 6;
-            //PlayerPrefs.GetInt("Level", 1);
+        var level = 7;
+            
         filePath = $"Assets/Levels/level_0{level}.json";
+        if (level == 10)
+        {
+            filePath = $"Assets/Levels/level_{level}.json";
+        }
+        
         string jsonContent = File.ReadAllText(filePath);
         LevelData levelData = JsonUtility.FromJson<LevelData>(jsonContent);
         
@@ -157,10 +163,8 @@ public class Grid : MonoBehaviour
                 
             }
         }
-        vaseText.text = vaseNum.ToString();
-        stoneText.text = stoneNum.ToString();
-        boxText.text = boxNum.ToString();
         
+        UpdateGoals();
         //StartCoroutine(Fill());
     }
 
@@ -172,6 +176,7 @@ public class Grid : MonoBehaviour
         vaseText.text = vaseNum.ToString();
         stoneText.text = stoneNum.ToString();
         boxText.text = boxNum.ToString();
+        movetext.text = moveCount.ToString();
     }
     public Vector2 GetWorldPosition(int x, int y)
     {
@@ -344,7 +349,7 @@ public class Grid : MonoBehaviour
                 ClearPiece(tile.X, tile.Y);
                 
             }
-
+            UpdateGoals();
             StartCoroutine(Fill());
             if (isGameFinished())
             {

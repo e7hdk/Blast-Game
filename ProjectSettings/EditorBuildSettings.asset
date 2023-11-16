@@ -7,8 +7,38 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/MainScreen.unity
-    guid: 81dcacc239a464971a024da6f8bc67ab
+    guid: 47bbd97d405d64bfca4d99837acad88e
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/SampleScene1.unity
+    guid: 9f92e08577121485abf619dbed21ec03
+  - enabled: 1
+    path: Assets/Scenes/SampleScene2.unity
+    guid: c643c5626ca5240a888aa8323c2c418f
+  - enabled: 1
+    path: Assets/Scenes/SampleScene3.unity
+    guid: 2c5afbd78ffaf45e5a193e91db310d2c
+  - enabled: 1
+    path: Assets/Scenes/SampleScene6.unity
+    guid: 4656abb467e4343ac8ca933873847728
+  - enabled: 1
+    path: Assets/Scenes/SampleScene7.unity
+    guid: 56a453c5b3b7c4a7ca3548d7fcb0430e
+  - enabled: 1
+    path: Assets/Scenes/SampleScene4.unity
+    guid: 9ff6b8edcc1ea4da29b4989d10540dab
+  - enabled: 1
+    path: Assets/Scenes/FinishedScene.unity
+    guid: fabae882f604d4709a63bdde8eb2a1ab
+  - enabled: 1
+    path: Assets/Scenes/SampleScene8.unity
+    guid: 2e99c9d8dd7e044c4a65e45c3be88dfe
+  - enabled: 1
+    path: Assets/Scenes/SampleScene9.unity
+    guid: 51e7b355b28884771b1c2a2ce7b7e1a5
+  - enabled: 1
+    path: Assets/Scenes/SampleScene10.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/SampleScene5.unity
+    guid: ae71f1232ab934c37b50c54c6dd72c3a
   m_configObjects: {}
