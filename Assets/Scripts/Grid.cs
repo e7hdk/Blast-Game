@@ -7,8 +7,10 @@ using DefaultNamespace;
 using DG.Tweening;
 using TMPro;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 public class Grid : MonoBehaviour
@@ -38,6 +40,7 @@ public class Grid : MonoBehaviour
     public int Height;
     public int moveCount;
     static string filePath;
+    //public GameObject panel;
     
     private bool inverse = false;
     public const float TweenDuration = 0.25f;
@@ -61,7 +64,8 @@ public class Grid : MonoBehaviour
 
     void Start()
     {
-        var level = 7;
+        //panel.SetActive(false);
+        var level = PlayerPrefs.GetInt("Level", 1);
             
         filePath = $"Assets/Levels/level_0{level}.json";
         if (level == 10)
@@ -173,6 +177,19 @@ public class Grid : MonoBehaviour
         if (vaseNum == 0) ;
         if (boxNum == 0) ;
         if (stoneNum == 0) ;
+        vaseNum = 0;
+        stoneNum = 0;
+        boxNum = 0;
+        for (int i = 0; i < xDim; i++)
+        {
+            for (int j = 0; j < yDim; j++)
+            {
+                if (pieces[i, j].Type == PieceType.VASE || pieces[i, j].Type == PieceType.VASE2) vaseNum++;
+                if (pieces[i, j].Type == PieceType.BOX) boxNum++;
+                if (pieces[i, j].Type == PieceType.STONE) stoneNum++;
+                
+            }
+        }
         vaseText.text = vaseNum.ToString();
         stoneText.text = stoneNum.ToString();
         boxText.text = boxNum.ToString();
@@ -216,6 +233,20 @@ public class Grid : MonoBehaviour
                         pieces[x, y + 1] = piece;
                         SpawnNewPieces(x, y, PieceType.EMPTY);
                         movedPiece = true;
+                    }
+                    else if (!pieceBelow.IsMovable())
+                    {
+                        for (var t = y + 2; t < yDim - 2; y++)
+                        {
+                            if (pieces[x, t].Type == PieceType.EMPTY)
+                            {
+                                Destroy(pieceBelow.gameObject);
+                                piece.MovableComponent.Move(x, t + 1, fillTime);
+                                pieces[x, t + 1] = piece;
+                                SpawnNewPieces(x, t, PieceType.EMPTY);
+                                movedPiece = true;
+                            }
+                        }
                     }
                     
                 }
@@ -356,6 +387,7 @@ public class Grid : MonoBehaviour
                 DOTween.Clear();
                 PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level") + 1);
                 
+                StartCoroutine(WaitforMenu());
                 SceneManager.LoadSceneAsync("MainScreen");
             }
             else if (moveCount == 0)
@@ -366,11 +398,18 @@ public class Grid : MonoBehaviour
         }
     }
 
+    IEnumerator WaitforMenu()
+    {
+        
+        yield return new WaitForSeconds(3);
+        //panel.SetActive(true);
+    }
+
     public bool ClearPiece(int x, int y)
     {
         if (pieces[x, y].IsClearable())
         {   
-            Debug.Log("sadfvadfv");
+            //Debug.Log("sadfvadfv");
             pieces[x, y].ClearablePiece.Clear();
             if (pieces[x, y].Type == PieceType.VASE)
             {

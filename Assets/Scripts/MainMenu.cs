@@ -21,7 +21,8 @@ public class MainMenu: MonoBehaviour
         if (PlayerPrefs.GetInt("Level") <= 10)
         {
             SceneManager.LoadSceneAsync($"SampleScene{level}");
-        }    
+        } 
+        
         
     }
 }
