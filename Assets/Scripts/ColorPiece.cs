@@ -14,8 +14,12 @@ public class ColorPiece : MonoBehaviour
     {
         YELLOW,
         BLUE,
+        RED,
         GREEN,
-        RED
+        GREENB,
+        YELLOWB,
+        BLUEB,
+        REDB
     };
     [Serializable]
     public struct ColorSprite

@@ -65,7 +65,8 @@ public class Grid : MonoBehaviour
     void Start()
     {
         //panel.SetActive(false);
-        var level = PlayerPrefs.GetInt("Level", 1);
+        var level = 5;
+            //PlayerPrefs.GetInt("Level", 1);
             
         filePath = $"Assets/Levels/level_0{level}.json";
         if (level == 10)
@@ -167,7 +168,7 @@ public class Grid : MonoBehaviour
                 
             }
         }
-        
+        CheckTnt();
         UpdateGoals();
         //StartCoroutine(Fill());
     }
@@ -204,7 +205,7 @@ public class Grid : MonoBehaviour
     {
         while (FillStep())
         {
-            inverse = !inverse;
+            //inverse = !inverse;
             yield return new WaitForSeconds(fillTime);
         }
     }
@@ -218,10 +219,7 @@ public class Grid : MonoBehaviour
             for (int xloop = 0; xloop < xDim; xloop++)
             {
                 int x = xloop;
-                if (inverse)
-                {
-                    x = xDim - 1 - xloop;
-                }
+                
                 GamePiece piece = pieces[x, y];
                 if (piece.IsMovable())
                 {
@@ -234,17 +232,21 @@ public class Grid : MonoBehaviour
                         SpawnNewPieces(x, y, PieceType.EMPTY);
                         movedPiece = true;
                     }
-                    else if (!pieceBelow.IsMovable())
+                    else if (pieceBelow.Type == PieceType.BOX || pieceBelow.Type == PieceType.STONE)
                     {
-                        for (var t = y + 2; t < yDim - 2; y++)
+                        
+                        for (var t = yDim - 1; t > y + 1; t--)
                         {
-                            if (pieces[x, t].Type == PieceType.EMPTY)
+                            GamePiece piecen = pieces[x, t];
+                            if (piecen.Type == PieceType.EMPTY)
                             {
-                                Destroy(pieceBelow.gameObject);
-                                piece.MovableComponent.Move(x, t + 1, fillTime);
-                                pieces[x, t + 1] = piece;
-                                SpawnNewPieces(x, t, PieceType.EMPTY);
-                                movedPiece = true;
+                                Destroy(piecen.gameObject);
+                                piece.MovableComponent.Move(x, t, fillTime);
+                                pieces[x, t] = piece;
+                                SpawnNewPieces(x, y, PieceType.EMPTY);
+                                
+                                //movedPiece = true;
+                                break;
                             }
                         }
                     }
@@ -276,9 +278,26 @@ public class Grid : MonoBehaviour
 
     public GamePiece SpawnNewPieces(int x, int y, PieceType type)
     {
-        GameObject newPiece =
-            (GameObject)Instantiate(piecePrefabDict[type], GetWorldPosition(x, y), quaternion.identity);
-        newPiece.transform.parent = transform;
+        GameObject newPiece;
+        if (type == PieceType.TNT)
+        {
+            
+            newPiece =
+                (GameObject)Instantiate(piecePrefabDict[type], GetWorldPosition(x, y),
+                    quaternion.identity);
+            newPiece.transform.parent = transform;
+        }
+        else
+        {
+            newPiece =
+                (GameObject)Instantiate(piecePrefabDict[type]);
+            newPiece.transform.parent = transform;
+            newPiece.transform.DOScale(new Vector3(0.7f,0.7f,0.7f), TweenDuration);
+            newPiece.transform.DOMove(new Vector3(GetWorldPosition(x, y).x, GetWorldPosition(x, y).y,0f), TweenDuration);
+        }
+        
+                //GetWorldPosition(x, y), quaternion.identity);
+        
 
         pieces[x, y] = newPiece.GetComponent<GamePiece>();
         pieces[x, y].Init(x, y, this, type);
@@ -357,9 +376,36 @@ public class Grid : MonoBehaviour
         return result;
     }
 
+    public void CheckTnt()
+    {
+        for (var y = 0; y < yDim; y++)
+        {
+            for (var x = 0; x < xDim; x++)
+            {
+                var piece = pieces[x, y];
+                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() >= 4)
+                {
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.BLUE) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.BLUEB);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.RED) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.REDB);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.GREEN) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.GREENB);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.YELLOW) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.YELLOWB);
+                }
+
+                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() < 4)
+                {
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.BLUEB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.BLUE);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.REDB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.RED);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.GREENB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.GREEN);
+                    if(piece.ColorComponent.Color == ColorPiece.ColorType.YELLOWB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.YELLOW);
+                }
+            }
+        }
+    }
     public bool IsTntCombo(GamePiece piece)
     {
-        if (piece.Neighbours.Any(a => a.Type == PieceType.TNT)) return true;
+        Debug.Log(piece.Neighbours.Length);
+        if ( piece.Neighbours.Length != 0 
+             && piece.Neighbours.Any(a => a != null && a.Type == PieceType.TNT)) return true;
         return false;
     }
     public void PressPiece(GamePiece piece)
@@ -382,6 +428,7 @@ public class Grid : MonoBehaviour
             }
             UpdateGoals();
             StartCoroutine(Fill());
+            
             if (isGameFinished())
             {
                 DOTween.Clear();
@@ -396,6 +443,7 @@ public class Grid : MonoBehaviour
             }
 
         }
+        
     }
 
     IEnumerator WaitforMenu()
@@ -438,7 +486,7 @@ public class Grid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        CheckTnt();
     }
     public class LevelData
     {

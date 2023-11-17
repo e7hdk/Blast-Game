@@ -149,11 +149,28 @@ namespace DefaultNamespace
                     result.Add(neighbour);
                 }
             
-                if (IsColored() && neighbour.IsColored() && neighbour.ColorComponent.Color == ColorComponent.Color ) 
-                    result.AddRange(neighbour.getConnectedTiles(exclude));
-                
+                if (IsColored() && neighbour.IsColored()) {
+                    if((colorComponent.Color == ColorPiece.ColorType.BLUE || colorComponent.Color == ColorPiece.ColorType.BLUEB) && 
+                       (neighbour.ColorComponent.Color == ColorPiece.ColorType.BLUE 
+                        ||neighbour.ColorComponent.Color == ColorPiece.ColorType.BLUEB) )
+                        result.AddRange(neighbour.getConnectedTiles(exclude));
+                    if((colorComponent.Color == ColorPiece.ColorType.RED || colorComponent.Color == ColorPiece.ColorType.REDB) && 
+                       (neighbour.ColorComponent.Color == ColorPiece.ColorType.RED 
+                        ||neighbour.ColorComponent.Color == ColorPiece.ColorType.REDB) )
+                        result.AddRange(neighbour.getConnectedTiles(exclude));
+                    if((colorComponent.Color == ColorPiece.ColorType.YELLOW || colorComponent.Color == ColorPiece.ColorType.YELLOWB)&& 
+                       (neighbour.ColorComponent.Color == ColorPiece.ColorType.YELLOW 
+                        ||neighbour.ColorComponent.Color == ColorPiece.ColorType.YELLOWB) )
+                        result.AddRange(neighbour.getConnectedTiles(exclude));
+                    if((colorComponent.Color == ColorPiece.ColorType.GREEN || colorComponent.Color == ColorPiece.ColorType.GREENB) && 
+                       (neighbour.ColorComponent.Color == ColorPiece.ColorType.GREEN 
+                        ||neighbour.ColorComponent.Color == ColorPiece.ColorType.GREENB) )
+                        result.AddRange(neighbour.getConnectedTiles(exclude));
+                    //neighbour.ColorComponent.Color == ColorComponent.Color;
+                    //result.AddRange(neighbour.getConnectedTiles(exclude));
+                }
 
-               
+
             }
             return result;
 
