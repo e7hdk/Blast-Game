@@ -30,6 +30,6 @@ public class Goals : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //vaseText.gameObject.SetActive(false);
     }
 }

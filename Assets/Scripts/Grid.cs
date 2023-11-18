@@ -32,16 +32,27 @@ public class Grid : MonoBehaviour
         public PieceType type;
         public GameObject prefab;
     }
+
+    public GameObject stoneTick;
+    public GameObject vaseTick;
+    public GameObject boxTick;
+    public GameObject gridBackground;
+    public GameObject boxImage;
+    public GameObject vaseImage;
+    public GameObject stoneImage;
     public TextMeshPro vaseText;
     public TextMeshPro boxText;
     public TextMeshPro stoneText;
     public TextMeshPro movetext;
+    private bool hasVase = false;
+    private bool hasStone = false;
+    private bool hasBox = false;
     public int Width;
     public int Height;
     public int moveCount;
     static string filePath;
     //public GameObject panel;
-    
+    public GameOver gameOver;
     private bool inverse = false;
     public const float TweenDuration = 0.25f;
 
@@ -65,8 +76,7 @@ public class Grid : MonoBehaviour
     void Start()
     {
         //panel.SetActive(false);
-        var level = 5;
-            //PlayerPrefs.GetInt("Level", 1);
+        var level = PlayerPrefs.GetInt("Level", 1);
             
         filePath = $"Assets/Levels/level_0{level}.json";
         if (level == 10)
@@ -78,7 +88,7 @@ public class Grid : MonoBehaviour
         LevelData levelData = JsonUtility.FromJson<LevelData>(jsonContent);
         
         xDim = levelData.grid_width; 
-        yDim = levelData.grid_height; 
+        yDim = levelData.grid_height;
         moveCount = levelData.move_count;
         string[] Grids = levelData.grid;
         
@@ -146,16 +156,19 @@ public class Grid : MonoBehaviour
                     case "bo":
                         tiled = SpawnNewPieces(x, y, PieceType.BOX);
                         boxNum++;
+                        hasBox = true;
                         //tiled.transform.parent = transform;
                         break;
                     case "s":
                         tiled = SpawnNewPieces(x, y, PieceType.STONE);
                         stoneNum++;
+                        hasStone = true;
                         //tiled.transform.parent = transform;
                         break;
                     case "v":
                         tiled = SpawnNewPieces(x, y, PieceType.VASE);
                         vaseNum++;
+                        hasVase = true;
                         //tiled.transform.parent = transform;
                         break;
                     case "t":
@@ -168,16 +181,33 @@ public class Grid : MonoBehaviour
                 
             }
         }
+        UpdateGridBackground();
+        UpdateGoalImages();
         CheckTnt();
         UpdateGoals();
         //StartCoroutine(Fill());
     }
 
+    public void UpdateGridBackground()
+    {
+        
+        var xScale = (xDim / 6.000f) * 0.575f;
+        var yScale = (yDim / 6.000f) * 0.525f;
+        Debug.Log(xScale);
+        gridBackground.transform.localScale = new Vector3(xScale, yScale, 0.86f);
+    }
+    public void UpdateGoalImages()
+    {
+        boxTick.SetActive(false);
+        vaseTick.SetActive(false);
+        stoneTick.SetActive(false);
+        if(!hasStone) stoneImage.SetActive(false);
+        if(!hasVase) vaseImage.SetActive(false);
+        if(!hasBox) boxImage.SetActive(false);
+    }
     public void UpdateGoals()
     {
-        if (vaseNum == 0) ;
-        if (boxNum == 0) ;
-        if (stoneNum == 0) ;
+        
         vaseNum = 0;
         stoneNum = 0;
         boxNum = 0;
@@ -190,6 +220,24 @@ public class Grid : MonoBehaviour
                 if (pieces[i, j].Type == PieceType.STONE) stoneNum++;
                 
             }
+        }
+
+        if (vaseNum == 0 && hasVase)
+        {
+            vaseText.gameObject.SetActive(false);
+            vaseTick.SetActive(true);
+        }
+
+        if (boxNum == 0 && hasBox)
+        {
+            boxText.gameObject.SetActive(false);
+            boxTick.SetActive(true);
+        }
+
+        if (stoneNum == 0 && hasStone)
+        {
+            stoneText.gameObject.SetActive(false);
+            stoneTick.SetActive(true);
         }
         vaseText.text = vaseNum.ToString();
         stoneText.text = stoneNum.ToString();
@@ -205,7 +253,7 @@ public class Grid : MonoBehaviour
     {
         while (FillStep())
         {
-            //inverse = !inverse;
+            
             yield return new WaitForSeconds(fillTime);
         }
     }
@@ -278,27 +326,10 @@ public class Grid : MonoBehaviour
 
     public GamePiece SpawnNewPieces(int x, int y, PieceType type)
     {
-        GameObject newPiece;
-        if (type == PieceType.TNT)
-        {
-            
-            newPiece =
-                (GameObject)Instantiate(piecePrefabDict[type], GetWorldPosition(x, y),
-                    quaternion.identity);
-            newPiece.transform.parent = transform;
-        }
-        else
-        {
-            newPiece =
-                (GameObject)Instantiate(piecePrefabDict[type]);
-            newPiece.transform.parent = transform;
-            newPiece.transform.DOScale(new Vector3(0.7f,0.7f,0.7f), TweenDuration);
-            newPiece.transform.DOMove(new Vector3(GetWorldPosition(x, y).x, GetWorldPosition(x, y).y,0f), TweenDuration);
-        }
+        GameObject newPiece = (GameObject)Instantiate(piecePrefabDict[type], GetWorldPosition(x, y),
+            quaternion.identity);
+        newPiece.transform.parent = transform;
         
-                //GetWorldPosition(x, y), quaternion.identity);
-        
-
         pieces[x, y] = newPiece.GetComponent<GamePiece>();
         pieces[x, y].Init(x, y, this, type);
         
@@ -307,11 +338,7 @@ public class Grid : MonoBehaviour
         return pieces[x, y];
     }
 
-    public bool isAdjacent(GamePiece piece1, GamePiece piece2)
-    {
-        return (piece1.X == piece2.X && (int)Math.Abs(piece1.Y - piece2.Y) == 1) ||
-               (piece1.Y == piece2.Y && (int)Math.Abs(piece1.X - piece2.X) == 1);
-    }
+    
 
     public List<GamePiece> GetMatch(GamePiece piece)
     {
@@ -437,15 +464,21 @@ public class Grid : MonoBehaviour
                 StartCoroutine(WaitforMenu());
                 SceneManager.LoadSceneAsync("MainScreen");
             }
-            else if (moveCount == 0)
+            else if (moveCount == 0 && !isGameFinished())
             {
-                SceneManager.LoadSceneAsync("MainScreen");
+                gameOver.ShowLoseScreen();
+                //SceneManager.LoadSceneAsync("MainScreen");
             }
 
         }
         
     }
 
+    public void ReplayLevel()
+    {
+        var currLevel = PlayerPrefs.GetInt("Level");
+        SceneManager.LoadSceneAsync($"SampleScene{currLevel}");
+    }
     IEnumerator WaitforMenu()
     {
         
@@ -481,6 +514,12 @@ public class Grid : MonoBehaviour
             }
         }
         return true;
+    }
+
+    public void ExitGame()
+    {
+        Debug.Log("fdeaffa");
+        SceneManager.LoadSceneAsync("MainScreen");
     }
 
     // Update is called once per frame
