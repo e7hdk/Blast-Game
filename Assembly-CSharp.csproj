@@ -55,6 +55,7 @@
      <Compile Include="Assets/Scripts/GamePiece.cs" />
      <Compile Include="Assets/Scripts/ColorPiece.cs" />
      <Compile Include="Assets/Scripts/ClearablePiece.cs" />
+     <Compile Include="Assets/Scripts/Congrat.cs" />
      <Compile Include="Assets/Scripts/GameOver.cs" />
      <Folder Include="Assets" />
      <None Include="Assets/TextMesh Pro/Shaders/TMPro.cginc" />
@@ -70,7 +71,6 @@
      <None Include="Assets/Levels/level_02.json" />
      <Folder Include="Assets/Resources/Items" />
      <Folder Include="Assets/TextMesh Pro/Resources/Fonts &amp; Materials" />
-     <None Include="Assets/Levels/temp.json" />
      <None Include="Assets/Levels/level_09.json" />
      <None Include="Assets/TextMesh Pro/Shaders/TMPro_Mobile.cginc" />
      <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF SSD.shader" />

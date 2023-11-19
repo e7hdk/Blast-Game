@@ -166,8 +166,6 @@ namespace DefaultNamespace
                        (neighbour.ColorComponent.Color == ColorPiece.ColorType.GREEN 
                         ||neighbour.ColorComponent.Color == ColorPiece.ColorType.GREENB) )
                         result.AddRange(neighbour.getConnectedTiles(exclude));
-                    //neighbour.ColorComponent.Color == ColorComponent.Color;
-                    //result.AddRange(neighbour.getConnectedTiles(exclude));
                 }
 
 

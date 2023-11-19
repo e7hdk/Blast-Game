@@ -23,9 +23,8 @@ public class Grid : MonoBehaviour
         STONE,
         VASE,
         VASE2,
-        TNT,
-        COUNT
-    };
+        TNT
+    }
     [Serializable]
     public struct PiecePrefab
     {
@@ -33,6 +32,10 @@ public class Grid : MonoBehaviour
         public GameObject prefab;
     }
 
+    public Congrat congrat;
+    public GameObject congratPanel;
+    public Animator crossFade;
+    public GameOver gameOver;
     public GameObject stoneTick;
     public GameObject vaseTick;
     public GameObject boxTick;
@@ -43,17 +46,15 @@ public class Grid : MonoBehaviour
     public TextMeshPro vaseText;
     public TextMeshPro boxText;
     public TextMeshPro stoneText;
-    public TextMeshPro movetext;
+    public TextMeshPro moveText;
     private bool hasVase = false;
     private bool hasStone = false;
     private bool hasBox = false;
-    public int Width;
-    public int Height;
     public int moveCount;
-    static string filePath;
-    //public GameObject panel;
-    public GameOver gameOver;
-    private bool inverse = false;
+    public static string _filePath;
+    private bool _isFinished = false;
+    
+    
     public const float TweenDuration = 0.25f;
 
     public float fillTime;
@@ -66,25 +67,26 @@ public class Grid : MonoBehaviour
 
     public PiecePrefab[] piecePrefabs;
 
-    public GameObject backgroundPrefab;
+   
     private GamePiece pressedPiece;
 
     public GamePiece[,] pieces;
-    // Start is called before the first frame update
+    
     
 
     void Start()
     {
-        //panel.SetActive(false);
+
         var level = PlayerPrefs.GetInt("Level", 1);
             
-        filePath = $"Assets/Levels/level_0{level}.json";
+        _filePath = $"Assets/Levels/level_0{level}.json";
         if (level == 10)
         {
-            filePath = $"Assets/Levels/level_{level}.json";
+            _filePath = $"Assets/Levels/level_{level}.json";
         }
         
-        string jsonContent = File.ReadAllText(filePath);
+        string jsonContent = File.ReadAllText(_filePath);
+        
         LevelData levelData = JsonUtility.FromJson<LevelData>(jsonContent);
         
         xDim = levelData.grid_width; 
@@ -100,24 +102,8 @@ public class Grid : MonoBehaviour
                 piecePrefabDict.Add(piecePrefabs[i].type, piecePrefabs[i].prefab);
             }
         }
-
-        for (var x = 0; x < xDim; x++)
-        {
-            for (var y = 0; y < yDim; y++)
-            {
-                //GameObject background = (GameObject)Instantiate(backgroundPrefab, new Vector3(x, y, 0), quaternion.identity);
-                //background.transform.parent = transform;
-            }
-        }
-
+        
         pieces = new GamePiece[xDim, yDim];
-        /*for (var x = 0; x < xDim; x++)
-        {
-            for (var y = 0; y < yDim; y++)
-            {
-                SpawnNewPieces(x, y, PieceType.EMPTY);
-            }
-        }*/
         
         for (var y = 0; y < yDim; y++)
         {
@@ -130,51 +116,42 @@ public class Grid : MonoBehaviour
                     case "g":
                         tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
                         tiled.ColorComponent.SetColor(ColorPiece.ColorType.GREEN);
-                        //tiled.transform.parent = transform;
                         break;
                     case "r":
                         tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
                         tiled.ColorComponent.SetColor(ColorPiece.ColorType.RED);
-                        //tiled.transform.parent = transform;
                         break;
                     case "y":
                         tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
                         tiled.ColorComponent.SetColor(ColorPiece.ColorType.YELLOW);
-                        
-                        //tiled.transform.parent = transform;
                         break;
                     case "b":
                         tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
                         tiled.ColorComponent.SetColor(ColorPiece.ColorType.BLUE);
-                        //tiled.transform.parent = transform;
                         break;
                     case "rand":
                         tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
                         tiled.ColorComponent.SetColor((ColorPiece.ColorType)Random.Range(0, 4));
-                        //tiled.transform.parent = transform;
                         break;
                     case "bo":
-                        tiled = SpawnNewPieces(x, y, PieceType.BOX);
+                        SpawnNewPieces(x, y, PieceType.BOX);
                         boxNum++;
                         hasBox = true;
-                        //tiled.transform.parent = transform;
                         break;
                     case "s":
-                        tiled = SpawnNewPieces(x, y, PieceType.STONE);
+                        SpawnNewPieces(x, y, PieceType.STONE);
                         stoneNum++;
                         hasStone = true;
-                        //tiled.transform.parent = transform;
+                        
                         break;
                     case "v":
-                        tiled = SpawnNewPieces(x, y, PieceType.VASE);
+                        SpawnNewPieces(x, y, PieceType.VASE);
                         vaseNum++;
                         hasVase = true;
-                        //tiled.transform.parent = transform;
+                        
                         break;
                     case "t":
-                        tiled = SpawnNewPieces(x, y, PieceType.NORMAL);
-                        tiled.ColorComponent.SetColor(ColorPiece.ColorType.RED);
-                        //tiled.transform.parent = transform;
+                        SpawnNewPieces(x, y, PieceType.TNT);
                         break;
                     
                 }
@@ -185,18 +162,19 @@ public class Grid : MonoBehaviour
         UpdateGoalImages();
         CheckTnt();
         UpdateGoals();
-        //StartCoroutine(Fill());
+        congratPanel.gameObject.SetActive(false);
+        
     }
 
-    public void UpdateGridBackground()
+    private void UpdateGridBackground()
     {
         
         var xScale = (xDim / 6.000f) * 0.575f;
         var yScale = (yDim / 6.000f) * 0.525f;
-        Debug.Log(xScale);
+        
         gridBackground.transform.localScale = new Vector3(xScale, yScale, 0.86f);
     }
-    public void UpdateGoalImages()
+    private void UpdateGoalImages()
     {
         boxTick.SetActive(false);
         vaseTick.SetActive(false);
@@ -205,7 +183,7 @@ public class Grid : MonoBehaviour
         if(!hasVase) vaseImage.SetActive(false);
         if(!hasBox) boxImage.SetActive(false);
     }
-    public void UpdateGoals()
+    private void UpdateGoals()
     {
         
         vaseNum = 0;
@@ -242,14 +220,14 @@ public class Grid : MonoBehaviour
         vaseText.text = vaseNum.ToString();
         stoneText.text = stoneNum.ToString();
         boxText.text = boxNum.ToString();
-        movetext.text = moveCount.ToString();
+        moveText.text = moveCount.ToString();
     }
     public Vector2 GetWorldPosition(int x, int y)
     {
         return new Vector2(transform.position.x - xDim / 2.0f + x, transform.position.y + yDim / 2.0f - y);
     }
 
-    public IEnumerator Fill()
+    private IEnumerator Fill()
     {
         while (FillStep())
         {
@@ -258,52 +236,49 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public bool FillStep()
+    private bool FillStep()
     {
         
         bool movedPiece = false;
-        for (int y = yDim - 2; y >= 0; y--)
+        for (var y = yDim - 2; y >= 0; y--)
         {
-            for (int xloop = 0; xloop < xDim; xloop++)
+            for (var xloop = 0; xloop < xDim; xloop++)
             {
-                int x = xloop;
+                var x = xloop;
                 
                 GamePiece piece = pieces[x, y];
-                if (piece.IsMovable())
+                if (!piece.IsMovable()) continue;
+                GamePiece pieceBelow = pieces[x, y + 1];
+                if (pieceBelow.Type == PieceType.EMPTY)
                 {
-                    GamePiece pieceBelow = pieces[x, y + 1];
-                    if (pieceBelow.Type == PieceType.EMPTY)
-                    {
-                        Destroy(pieceBelow.gameObject);
-                        piece.MovableComponent.Move(x, y + 1, fillTime);
-                        pieces[x, y + 1] = piece;
-                        SpawnNewPieces(x, y, PieceType.EMPTY);
-                        movedPiece = true;
-                    }
-                    else if (pieceBelow.Type == PieceType.BOX || pieceBelow.Type == PieceType.STONE)
-                    {
+                    Destroy(pieceBelow.gameObject);
+                    piece.MovableComponent.Move(x, y + 1, fillTime);
+                    pieces[x, y + 1] = piece;
+                    SpawnNewPieces(x, y, PieceType.EMPTY);
+                    movedPiece = true;
+                }
+                else if (pieceBelow.Type == PieceType.BOX || pieceBelow.Type == PieceType.STONE)
+                {
                         
-                        for (var t = yDim - 1; t > y + 1; t--)
+                    for (var t = yDim - 1; t > y + 1; t--)
+                    {
+                        GamePiece piecen = pieces[x, t];
+                        if (piecen.Type == PieceType.EMPTY)
                         {
-                            GamePiece piecen = pieces[x, t];
-                            if (piecen.Type == PieceType.EMPTY)
-                            {
-                                Destroy(piecen.gameObject);
-                                piece.MovableComponent.Move(x, t, fillTime);
-                                pieces[x, t] = piece;
-                                SpawnNewPieces(x, y, PieceType.EMPTY);
+                            Destroy(piecen.gameObject);
+                            piece.MovableComponent.Move(x, t, fillTime);
+                            pieces[x, t] = piece;
+                            SpawnNewPieces(x, y, PieceType.EMPTY);
                                 
-                                //movedPiece = true;
-                                break;
-                            }
+                            //movedPiece = true;
+                            break;
                         }
                     }
-                    
                 }
             }
         }
 
-        for (int x = 0; x < xDim; x++)
+        for (var x = 0; x < xDim; x++)
         {
             
             GamePiece pieceBelow = pieces[x, 0];
@@ -324,7 +299,7 @@ public class Grid : MonoBehaviour
         return movedPiece;
     }
 
-    public GamePiece SpawnNewPieces(int x, int y, PieceType type)
+    private GamePiece SpawnNewPieces(int x, int y, PieceType type)
     {
         GameObject newPiece = (GameObject)Instantiate(piecePrefabDict[type], GetWorldPosition(x, y),
             quaternion.identity);
@@ -340,42 +315,34 @@ public class Grid : MonoBehaviour
 
     
 
-    public List<GamePiece> GetMatch(GamePiece piece)
+    private List<GamePiece> GetMatch(GamePiece piece)
     {
         List<GamePiece> matching = piece.getConnectedTiles(null);
         if (matching.Where(a => a.Type == PieceType.NORMAL).Count() >= 2)
         {
-            if (matching.Where(a => a.Type == PieceType.NORMAL).Count() >= 4)
+            if (matching.Where(a => a.Type == PieceType.NORMAL).Count() >= 5)
             {
                 piece.transform.DOScale(Vector3.zero, TweenDuration);
                 Destroy(piece.gameObject);
                 SpawnNewPieces(piece.X, piece.Y, PieceType.TNT);
                 return matching.Except(new GamePiece[]{piece}).ToList();
             }
-                return matching;
-        };
+            return matching;
+        }
 
         return null;
     }
 
-    public List<GamePiece> getTntParticles(GamePiece tile, List<GamePiece> exclude = null, bool combo = false)
+    private List<GamePiece> GetTntParticles(GamePiece tile, List<GamePiece> exclude = null, bool combo = false)
     {
         var result = new List<GamePiece> { tile, };
         
 
-        if(exclude == null)
-        {
-            exclude = new List<GamePiece>{ tile, };
-        }
-        else
-        {
-            exclude.Add(tile);
-        }
+        if(exclude == null) exclude = new List<GamePiece>{ tile, };
+        else exclude.Add(tile);
         
-        //var tntList = new List<Tile>();
-        //var tempTntTiles = new List<Tile>();
         var tntScale = combo ? 3 : 2;
-        //var tntHeight = combo ? 4: 2;
+        
         for (var y = tile.Y - tntScale; y <= tile.Y + tntScale; y++)
         {
             for (var x = tile.X - tntScale; x <= tile.X + tntScale; x++)
@@ -385,13 +352,7 @@ public class Grid : MonoBehaviour
                     var connTile = pieces[x, y];
                     if (!exclude.Contains(connTile))
                     {
-                        if (connTile.Type == PieceType.TNT)
-                        {
-                            
-                            //tntList.Add(Tiles[x,y]);
-                            result.AddRange(getTntParticles(connTile, exclude));
-                            
-                        }
+                        if (connTile.Type == PieceType.TNT) result.AddRange(GetTntParticles(connTile, exclude));
                         else result.Add(connTile);
                         
                     }
@@ -402,15 +363,32 @@ public class Grid : MonoBehaviour
         
         return result;
     }
+    public IEnumerator LoadScene(string sceneName)
+    {
+        crossFade.SetTrigger("Start");
+        if (_isFinished)
+        {
+            
+            //congratPanel.SetActive(true);
+            //SceneManager.LoadScene(sceneName);
+            yield return new WaitForSeconds(3f);
+        }
+        else
+        {
+            yield return new WaitForSeconds(1f);
+            SceneManager.LoadScene(sceneName);
+        }
+        
+    }
 
-    public void CheckTnt()
+    private void CheckTnt()
     {
         for (var y = 0; y < yDim; y++)
         {
             for (var x = 0; x < xDim; x++)
             {
                 var piece = pieces[x, y];
-                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() >= 4)
+                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() >= 5)
                 {
                     if(piece.ColorComponent.Color == ColorPiece.ColorType.BLUE) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.BLUEB);
                     if(piece.ColorComponent.Color == ColorPiece.ColorType.RED) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.REDB);
@@ -418,7 +396,7 @@ public class Grid : MonoBehaviour
                     if(piece.ColorComponent.Color == ColorPiece.ColorType.YELLOW) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.YELLOWB);
                 }
 
-                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() < 4)
+                if (piece.IsColored() && piece.getConnectedTiles().Where(a => a.IsColored()).Count() < 5)
                 {
                     if(piece.ColorComponent.Color == ColorPiece.ColorType.BLUEB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.BLUE);
                     if(piece.ColorComponent.Color == ColorPiece.ColorType.REDB) pieces[x, y].ColorComponent.SetColor(ColorPiece.ColorType.RED);
@@ -428,9 +406,9 @@ public class Grid : MonoBehaviour
             }
         }
     }
-    public bool IsTntCombo(GamePiece piece)
+    private bool IsTntCombo(GamePiece piece)
     {
-        Debug.Log(piece.Neighbours.Length);
+        
         if ( piece.Neighbours.Length != 0 
              && piece.Neighbours.Any(a => a != null && a.Type == PieceType.TNT)) return true;
         return false;
@@ -441,37 +419,38 @@ public class Grid : MonoBehaviour
         var cleaningTiles = GetMatch(piece);
         if (pressedPiece.Type == PieceType.TNT)
         {
-            if (IsTntCombo(piece)) cleaningTiles = getTntParticles(piece, null, true);
-            else cleaningTiles = getTntParticles(piece, null);
+            cleaningTiles = IsTntCombo(piece) ? GetTntParticles(piece, null, true) 
+                : GetTntParticles(piece, null);
         }
-        
-        if (cleaningTiles != null)
-        {
-            moveCount -= 1;
-            foreach (var tile in cleaningTiles)
-            {
-                ClearPiece(tile.X, tile.Y);
-                
-            }
-            UpdateGoals();
-            StartCoroutine(Fill());
-            
-            if (isGameFinished())
-            {
-                DOTween.Clear();
-                PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level") + 1);
-                
-                StartCoroutine(WaitforMenu());
-                SceneManager.LoadSceneAsync("MainScreen");
-            }
-            else if (moveCount == 0 && !isGameFinished())
-            {
-                gameOver.ShowLoseScreen();
-                //SceneManager.LoadSceneAsync("MainScreen");
-            }
 
+        if (cleaningTiles == null) return;
+        moveCount -= 1;
+        foreach (var tile in cleaningTiles)
+        {
+            ClearPiece(tile.X, tile.Y);
+                
         }
-        
+        UpdateGoals();
+        StartCoroutine(Fill());
+            
+        if (IsGameFinished())
+        {
+            DOTween.Clear();
+            PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level", 1) + 1);
+            _isFinished = true;
+            //StartCoroutine(WaitforMenu());
+            //SceneManager.LoadSceneAsync("MainScreen");
+            congratPanel.SetActive(true);
+            congrat.gameObject.SetActive(true);
+            congrat.ShowCongratScreen();
+            //StartCoroutine(LoadScene("MainScreen"));
+        }
+        else if (moveCount == 0 && !IsGameFinished())
+        {
+            gameOver.ShowLoseScreen();
+                
+        }
+
     }
 
     public void ReplayLevel()
@@ -486,7 +465,7 @@ public class Grid : MonoBehaviour
         //panel.SetActive(true);
     }
 
-    public bool ClearPiece(int x, int y)
+    private bool ClearPiece(int x, int y)
     {
         if (pieces[x, y].IsClearable())
         {   
@@ -503,7 +482,7 @@ public class Grid : MonoBehaviour
         return false;
     }
 
-    public bool isGameFinished()
+    private bool IsGameFinished()
     {
         for (var y = 0; y < yDim; y++)
         {
@@ -516,22 +495,18 @@ public class Grid : MonoBehaviour
         return true;
     }
 
-    public void ExitGame()
-    {
-        Debug.Log("fdeaffa");
-        SceneManager.LoadSceneAsync("MainScreen");
-    }
+    
 
-    // Update is called once per frame
+   
     void Update()
     {
         CheckTnt();
     }
     public class LevelData
     {
-        public  int grid_width;
-        public  int grid_height;
-        public  int move_count;
-        public  string[] grid;
+        public int grid_width;
+        public int grid_height;
+        public int move_count;
+        public string[] grid;
     }
 }

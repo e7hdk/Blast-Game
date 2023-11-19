@@ -6,21 +6,11 @@ using UnityEngine.SceneManagement;
 
 public class ReplayButton : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    public Grid grid;
     private void OnMouseDown()
     {
-        SceneManager.LoadSceneAsync("SampleScene1");
+        StartCoroutine(grid.LoadScene("SampleScene1"));
+        //SceneManager.LoadSceneAsync("SampleScene1");
         
     }
 }

@@ -2,13 +2,15 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace DefaultNamespace
+
+
+    
+public class ExitButton: MonoBehaviour
 {
-    public class ExitButton: MonoBehaviour
+    public Grid grid; 
+    private void OnMouseDown()
     {
-        private void OnMouseDown()
-        {
-            SceneManager.LoadSceneAsync("MainScreen");
-        }
+        StartCoroutine(grid.LoadScene("MainScreen"));
+        
     }
 }
