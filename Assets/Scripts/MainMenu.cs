@@ -13,22 +13,15 @@ public class MainMenu: MonoBehaviour
     {
         screen.SetActive(false);
         level = PlayerPrefs.GetInt("Level", 1);
-        if (level > 10)
-        {
-            levelText.text = "Finished";
-        }
-        levelText.text = $"Level {level}";
+        levelText.text = level > 10 ? "Finished" : $"Level {level}";
     }
 
     public void PLayGame()
     {
         if (PlayerPrefs.GetInt("Level") <= 10)
         {
-            //SceneManager.LoadSceneAsync("SampleScene1");
             StartCoroutine(LoadScene());
         } 
-        
-        
     }
 
     public IEnumerator LoadScene()
